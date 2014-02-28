@@ -33,7 +33,7 @@ end = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
 step = datetime.timedelta(hours=1)
 
 result=list()
-while dt<end:
+while dt<=end:
     
     y=str(dt.year)    
     m=str(dt.month)
