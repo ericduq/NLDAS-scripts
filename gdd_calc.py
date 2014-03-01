@@ -1,3 +1,4 @@
+import nldas_defs as nldas
 import datetime
 import subprocess
 import pandas as pd
@@ -24,46 +25,13 @@ step = datetime.timedelta(hours=1)
 
 result=list()
 hour24=[]
+dt_start=dt
 while dt<=end:
     
-    y=str(dt.year)    
-    m=str(dt.month)
-    d=str(dt.day)
-    h=str(dt.hour)
-    doy=str(dt.strftime('%j'))
 
-    # Year string    
-    yy=str(y)
-    
-    # Month string    
-    if len(m)==1:
-        mm="0" + m
-    else:
-        mm=m
-    
-    # Day string;
-    if len(d)==1:
-        dd="0"+d
-    else:
-        dd=d
-    
-    # Hour string;
-    if len(h)==1:
-        hhhh="0" + h + "00"
-    else : 
-        hhhh=h+"00"
-    
-    #Day of year string
-    if len(doy)==1:
-        ddoy="00"+doy
-    elif len(doy)==2:
-        ddoy="0"+doy
-    else: 
-        ddoy=doy
+    print '--- Examining ' + str(dt.year) + str(dt.month) + str(dt.month) + str(dt.hour) + '---'
 
-    print '--- Examining ' + yy + mm + dd + hhhh + '---'
-
-    inputfile = DATADIR +"/NLDAS_NOAH0125_H.A" + yy + mm + dd + "." + hhhh + ".002.grb"
+    inputfile=nldas.grib_filepath(dt,DATADIR)
     f = open(inputfile)
     
     mcount=grib_count_in_file(f)
@@ -86,7 +54,7 @@ while dt<=end:
     grib_release(gid)
     dt +=step
     
-date=pd.date_range(yy+mm+dd,periods=24,freq='H')
+date=pd.date_range(dt_start,periods=24,freq='H')
 hour24=pd.DataFrame([hour24],index=date)
 #hourtemp=hourtemp.applymap(lambda x: np.nan if x==9999 else x)
 #hourtemp=pd.DataFrame([hourtemp],index=date)
