@@ -24,12 +24,13 @@ end = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
 step = datetime.timedelta(hours=1)
 
 result=list()
-hour24=[]
+hour24=list()
 dt_start=dt
+print '--- Importing 1 day\'s worth of data ---'
 while dt<=end:
     
 
-    print '--- Examining ' + str(dt.year) + str(dt.month) + str(dt.month) + str(dt.hour) + '---'
+    #print '--- Examining ' + str(dt.year) + str(dt.month) + str(dt.month) + str(dt.hour) + '---'
 
     inputfile=nldas.grib_filepath(dt,DATADIR)
     f = open(inputfile)
@@ -41,24 +42,29 @@ while dt<=end:
 	
         gid=gid_list[i]
         avg=grib_get(gid,'average')
-        if i==14: # The 14th field should always be surface temperatures
+        if i==14: # 14 should always be surface temperatures
            result.append(avg)
 
-        if i==14: # The 14th field should always be surface temperatures
+        if i==14: # 14 should always be surface temperatures
            hourtemp=grib_get_values(gid)
            #hourtemp[hourtemp==9999]=np.nan
            hour24.append(hourtemp)
-           print len(hour24)
 
     f.close()
     grib_release(gid)
     dt +=step
-    
+
+print '--- Converting 9999 to missing (nan) ---'
+hour24=[[np.nan if i==9999 else i for i in j] for j in hour24]    
+#print [np.mean(j) for j in hour24]
+
+print '--- Converting to dataframe ---'
 date=pd.date_range(dt_start,periods=24,freq='H')
-hour24=pd.DataFrame([hour24],index=date)
+hour24=pd.DataFrame(hour24,index=date)
 #hourtemp=hourtemp.applymap(lambda x: np.nan if x==9999 else x)
 #hourtemp=pd.DataFrame([hourtemp],index=date)
 print result
+print hour24.mean(axis=1)
 
 
 
