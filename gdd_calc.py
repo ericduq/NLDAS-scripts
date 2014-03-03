@@ -6,6 +6,7 @@ import numpy as np
 import sys
 sys.path.append("/etc/local/grib_api/lib/python2.7/site-packages/grib_api")
 from gribapi import *
+import subprocess
 
 ### Globals
 DATADIR="../NLDAS-data/originals"
@@ -32,28 +33,43 @@ dt_start=dt
 print '--- Importing temperature data ---'
 while dt<=end:
     
-
-    print '--- Examining ' + str(dt.year) + str(dt.month) + str(dt.month) + str(dt.hour) + '---'
-
-    inputfile=nldas.grib_filepath(dt,DATADIR)
-    f = open(inputfile)
     
+    # Convert dt to strings
+    yy=str(dt.year)
+    mm='{:02.0f}'.format(dt.month)
+    dd='{:02.0f}'.format(dt.day)
+    hhhh='{:02.0f}'.format(dt.hour) + "00"
+    ddoy='{:03.0f}'.format(int(dt.strftime('%j')))
+
+    print '--- Examining ' + yy + mm + dd + hhhh + ' ---'
+    
+    # Download grib file to local drive
+    command="wget -q -P " + DATADIR +"/ " + "ftp://hydro1.sci.gsfc.nasa.gov/data/s4pa/NLDAS/NLDAS_NOAH0125_H.002/" + yy + "/" + ddoy + "/NLDAS_NOAH0125_H.A" + yy + mm + dd + "." + hhhh + ".002.grb"
+    rcode=subprocess.call(command.split())
+
+    # Open file and extract 
+    inputfile=nldas.grib_filepath(dt,DATADIR)
+    f = open(inputfile)    
     mcount=grib_count_in_file(f)
     gid_list=[grib_new_from_file(f) for i in xrange(mcount)]
 
     #for i in xrange(mcount):
-    for i in [14]: # only care about surface temperature for gdd
-	
-        gid=gid_list[i]
-        if i==14: # 14 should always be surface temperatures
-           hourtemp=grib_get_values(gid)
-	   point=grib_find_nearest(gid,LAT,LON,is_lsm = False,npoints = 1)
-	   hourtemp=point[0]['value']
-           #hourtemp[hourtemp==9999]=np.inan
-           sft.append(hourtemp)
-
+    gid = 15 # 14 should alawys be surface temperature for NOAH2	
+    hourtemp=grib_get_values(gid) # ENTIRE GRID
+    point=grib_find_nearest(gid,LAT,LON,is_lsm = False,npoints = 1) # SINGLE LAT-LON
+    hourtemp=point[0]['value']
+    
+    print hourtemp
+    sft.append(hourtemp)
+    
+    for i in xrange(mcount):
+       grib_release(gid_list[i])
     f.close()
-    grib_release(gid)
+
+    # Remove file from local drive
+    command="rm "+inputfile
+    rcode=subprocess.call(command.split())
+    
     dt +=step
 
 sft=np.array(sft)
