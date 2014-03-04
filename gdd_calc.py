@@ -28,11 +28,12 @@ dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
 end = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
 step = datetime.timedelta(hours=1)
 
-sft=list() # surface tempeature
-dt_start=dt
-print '--- Importing temperature data ---'
+print '--- Starting calculation ---'
+dtemps=list()
+gdd_total=list()
 while dt<=end:
     
+    htemp=list()
     
     # Convert dt to strings
     yy=str(dt.year)
@@ -54,13 +55,24 @@ while dt<=end:
     gid_list=[grib_new_from_file(f) for i in xrange(mcount)]
 
     #for i in xrange(mcount):
-    gid = 15 # 14 should alawys be surface temperature for NOAH2	
-    hourtemp=grib_get_values(gid) # ENTIRE GRID
+    gid = 15 # 15 should alawys be surface temperature for NOAH2	
+    #htemp=grib_get_values(gid) # ENTIRE GRID
     point=grib_find_nearest(gid,LAT,LON,is_lsm = False,npoints = 1) # SINGLE LAT-LON
-    hourtemp=point[0]['value']
+    htemp=point[0]['value']
+    print htemp
+    htemp=np.nan if htemp==9999 else htemp-273.15 # Convert missing to Nan and K degrees to C
+    print htemp
     
-    print hourtemp
-    sft.append(hourtemp)
+    dtemps.append(htemp) # append hour temperature to day temperatures
+    if dt.hour==23:
+       dtemps=np.array(dtemps)
+       dtemps[dtemps<BASETEMP]=BASETEMP
+       dtemps[dtemps>MAXTEMP]=MAXTEMP
+       print '--- Calculating GDD ----'
+       gdd_day=(np.nanmax(dtemps,axis=0)+np.nanmin(dtemps,axis=0))/2 - BASETEMP
+       gdd_total.append(gdd_day.tolist())
+       a=dtemps
+       dtemps=list()
     
     for i in xrange(mcount):
        grib_release(gid_list[i])
@@ -72,24 +84,16 @@ while dt<=end:
     
     dt +=step
 
-sft=np.array(sft)
+print gdd_total
+print sum(gdd_total)
 
-print '--- Converting 9999 to missing (nan) and Celsius---'
-sft[sft==9999]=np.nan
-sft=sft-273.15
-#hour24=[[np.nan if i==9999 else i-273.15 for i in j] for j in hour24]
+#sft=np.array(sft)
+#sft[sft==9999]=np.nan
+#sft=sft-273.15
+#sft[sft<BASETEMP]=BASETEMP
+#sft[sft>MAXTEMP]=MAXTEMP
+#gdd=(np.nanmax(sft,axis=0)+np.nanmin(sft,axis=0))/2 - BASETEMP
 
-
-print '--- Censoring data to interval between basetemp and maxtemp? ---'
-sft[sft<BASETEMP]=BASETEMP
-sft[sft>MAXTEMP]=MAXTEMP
-#hour24=[[BASETEMP if i<BASETEMP else i for i in j] for j in hour24]
-#hour24=[[MAXTEMP if i>MAXTEMP else i for i in j] for j in hour24]
-
-print '--- Calculating GDD ----'
-#hour24=np.array(hour24)
-gdd=(np.nanmax(sft,axis=0)+np.nanmin(sft,axis=0))/2 - BASETEMP
-print gdd
 
 
 #print '--- Converting to dataframe ---'
