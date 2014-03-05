@@ -11,7 +11,7 @@ import datetime
 import subprocess # for calling external commands
 
 ### Globals
-DATADIR="../NLDAS-data/originals"
+DATADIR="/mnt/NLDAS-data/originals"
 
 STARTYR=2012
 ENDYR=2012
