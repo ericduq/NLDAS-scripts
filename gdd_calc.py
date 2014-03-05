@@ -9,7 +9,7 @@ from gribapi import *
 import subprocess
 
 ### Globals
-DATADIR="../NLDAS-data/originals"
+DATADIR="/mnt/NLDAS-data/originals"
 STARTYR=2012
 ENDYR=2012
 STARTMO=4
@@ -22,6 +22,7 @@ BASETEMP=10 # Basic GDD calculation
 MAXTEMP=30
 LAT=39.27583 # Point of Rocks, MD
 LON=-77.53944
+DOWNLOAD=0
 
 ### Construct command sequence
 dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
@@ -44,9 +45,10 @@ while dt<=end:
 
     print '--- Examining ' + yy + mm + dd + hhhh + ' ---'
     
-    # Download grib file to local drive
-    command="wget -q -P " + DATADIR +"/ " + "ftp://hydro1.sci.gsfc.nasa.gov/data/s4pa/NLDAS/NLDAS_NOAH0125_H.002/" + yy + "/" + ddoy + "/NLDAS_NOAH0125_H.A" + yy + mm + dd + "." + hhhh + ".002.grb"
-    rcode=subprocess.call(command.split())
+    if DOWNLOAD==1:
+       # Download grib file to local drive
+       command="wget -q -P " + DATADIR +"/ " + "ftp://hydro1.sci.gsfc.nasa.gov/data/s4pa/NLDAS/NLDAS_NOAH0125_H.002/" + yy + "/" + ddoy + "/NLDAS_NOAH0125_H.A" + yy + mm + dd + "." + hhhh + ".002.grb"
+       rcode=subprocess.call(command.split())
 
     # Open file and extract 
     inputfile=nldas.grib_filepath(dt,DATADIR)
@@ -78,9 +80,10 @@ while dt<=end:
        grib_release(gid_list[i])
     f.close()
 
-    # Remove file from local drive
-    command="rm "+inputfile
-    rcode=subprocess.call(command.split())
+    if DOWNLOAD==1:
+       # Remove file from local drive
+       command="rm "+inputfile
+       rcode=subprocess.call(command.split())
     
     dt +=step
 
