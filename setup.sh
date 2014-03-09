@@ -23,6 +23,7 @@ sudo make install
 cd /mnt
 mkdir /NLDAS-data
 mkdir /NLDAS-data/originals
+mkdir /NLDAS-data/constructed
 chown -R ubuntu NLDAS-data
 chgrp -R ubuntu NLDAS-data
 exit
