@@ -91,7 +91,7 @@ while dt<=end:
 
 print '--- Finished with GDD calculation ---'
 print '--- Saving GDD in ' + CONSTDIR 
-savefile= CONSTDIR + '\gdd_fullgrid.txt'
+savefile= CONSTDIR + '/gdd_fullgrid.txt'
 np.savetxt(savefile, gdd_accum, delimiter=",")
 print '--- Saved gdd_fullgrid.txt ! ---'
 #gdd_day=(np.nanmax(temps,axis=0)+np.nanmin(temps,axis=0))/2 - BASETEMP
