@@ -10,6 +10,7 @@ import subprocess
 
 ### Globals
 DATADIR="/mnt/NLDAS-data/originals"
+CONSTDIR="/mnt/NLDAS-data/constructed"
 STARTYR=2012
 ENDYR=2012
 STARTMO=4
@@ -28,10 +29,18 @@ end = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
 step = datetime.timedelta(hours=1)
 dtstart=dt
 
-print '--- Starting calculation ---'
+print '--- Starting GDD calculation ---'
 temps=list()
 gdd_accum=np.zeros([1,103936])
 gdd_total=list()
+portemp=list() # Point of Rocks temp.
+
+for i in xrange(53):  #clear gid 0-51 range. Only useful if a prior running results in improper shutdown and a failure to run gid release.
+   try:
+      grib_release(i)
+   except:
+      pass # do nothing
+
 while dt<=end:
     
     # Convert dt to strings
@@ -67,7 +76,6 @@ while dt<=end:
        gdd=(nptemps.mean(axis=0)-BASETEMP)/24
        gdd_accum=gdd_accum+gdd
        temps.pop(0)
-       #print gdd_accum[0][7000:7500]
 
     for i in xrange(mcount):
        grib_release(gid_list[i])
@@ -80,15 +88,11 @@ while dt<=end:
     
     dt +=step
 
-#temps=np.array(temps)
-#temps[temps==9999]=np.nan
-#temps=temps-273.15
-#temps[temps<BASETEMP]=BASETEMP
-#temps[temps>MAXTEMP]=MAXTEMP
 
-print '--- Calculating GDD ----'
-
-
+print '--- Finished with GDD calculation ---'
+print '--- Saving GDD in ' + CONSTDIR 
+np.savetxt('gdd_fullgrid.txt', gdd_accum, delimiter=",")
+print '--- Saved gdd_fullgrid.txt ! ---'
 #gdd_day=(np.nanmax(temps,axis=0)+np.nanmin(temps,axis=0))/2 - BASETEMP
 #gdd_total.append(gdd_day.tolist())
 #print gdd_total
@@ -98,10 +102,4 @@ print '--- Calculating GDD ----'
 #print '--- Converting to dataframe ---'
 #date=pd.date_range(dt_start,periods=24,freq='H')
 #hour24=pd.DataFrame(hour24,index=date)
-
-
-
-
-
-
 
