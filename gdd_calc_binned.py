@@ -14,15 +14,15 @@ CONSTDIR="/mnt/NLDAS-data/constructed"
 STARTYR=2012
 ENDYR=2012
 STARTMO=4
-ENDMO=4
+ENDMO=8
 STARTDAY=1
-ENDDAY=1
+ENDDAY=31
 STARTHR=0
 ENDHR=23
 BASETEMP=10 # Basic GDD calculation
 MAXTEMP=30
 DOWNLOAD=0
-NUMCBINS=5 # Number of Celsius bins (to start at 0 degress and increment by 1 - i.e., highest represented degree)
+NUMCBINS=45 # Number of Celsius bins (to start at 0 degress and increment by 1 - i.e., highest represented degree)
 
 ### Construct command sequence
 dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
@@ -70,16 +70,20 @@ while dt<=end:
     temps.append(htemp) # append hour temperature to day temperatures
 
     if dt!=dtstart:
-       for i in xrange(NUMCBINS):
+      tempdiff=np.diff(temps, axis=0)
+      tempdiff[tempdiff==0]=1 # Prevents division by zero and conforms to proper gdd calculation; nan's should only mean bad grid cells
+      hoursperdeg=np.abs(1/tempdiff) # ! Division be zero subverted by line above
+
+      for i in xrange(NUMCBINS):
           CMIN=i
           CMAX=i+1
-          nptemps=np.array(temps)
-          nptempsdiff=nptemps.diff()
-          nptemps[nptemps<CMIN]=CMIN
-          nptemps[nptemps>CMAX]=CMAX
-          gdd=(nptemps.mean(axis=0)-CMIN)/(24*nptempsdiff)
-          gdd_accum[i]=gdd_accum[i]+gdd
-       temps.pop(0)
+          nptemps = np.array(temps)
+          nptemps[nptemps<CMIN] = CMIN
+          nptemps[nptemps>CMAX] = CMAX
+          bintempdiff = np.abs( np.diff(nptemps, axis=0) ) # should be in closed 0-1 interval
+          gdd = ( bintempdiff * hoursperdeg ) / 24  # calculates amount of time spent in particular bin conditional on temp rate change
+          gdd_accum[i] = gdd_accum[i]+gdd
+      temps.pop(0)
 
     for i in xrange(mcount):
        grib_release(gid_list[i])
@@ -99,7 +103,4 @@ savefile= CONSTDIR + '\gdd_binned.txt'
 np.savetxt(savefile, gdd_accum, delimiter=",")
 print '--- Saved gdd_binned.txt ! ---'
 
-#print '--- Converting to dataframe ---'
-#date=pd.date_range(dt_start,periods=24,freq='H')
-#hour24=pd.DataFrame(hour24,index=date)
 
