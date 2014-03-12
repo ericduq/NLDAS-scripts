@@ -13,9 +13,9 @@ DATADIR="/mnt/NLDAS-data/originals"
 STARTYR=2012
 ENDYR=2012
 STARTMO=4
-ENDMO=8
+ENDMO=4
 STARTDAY=1
-ENDDAY=31
+ENDDAY=1
 STARTHR=0
 ENDHR=23
 BASETEMP=10 # Basic GDD calculation
@@ -23,6 +23,7 @@ MAXTEMP=30
 LAT=39.27583 # Point of Rocks, MD
 LON=-77.53944
 DOWNLOAD=0
+
 
 ### Construct command sequence
 dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
@@ -89,25 +90,3 @@ while dt<=end:
 
 print gdd_total
 print sum(gdd_total)
-
-#sft=np.array(sft)
-#sft[sft==9999]=np.nan
-#sft=sft-273.15
-#sft[sft<BASETEMP]=BASETEMP
-#sft[sft>MAXTEMP]=MAXTEMP
-#gdd=(np.nanmax(sft,axis=0)+np.nanmin(sft,axis=0))/2 - BASETEMP
-
-
-
-#print '--- Converting to dataframe ---'
-#date=pd.date_range(dt_start,periods=24,freq='H')
-#hour24=pd.DataFrame(hour24,index=date)
-#hourtemp=hourtemp.applymap(lambda x: np.nan if x==9999 else x)
-#gdd=hour24.max(axis=0)-hour24.min(axis=1)
-
-
-
-
-
-
-
