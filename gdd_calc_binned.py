@@ -19,10 +19,13 @@ STARTDAY=1
 ENDDAY=31
 STARTHR=0
 ENDHR=23
-BASETEMP=10 # Basic GDD calculation
 MAXTEMP=30
 DOWNLOAD=0
 NUMCBINS=45 # Number of Celsius bins (to start at 0 degress and increment by 1 - i.e., highest represented degree)
+SAVE=1
+
+# Record time for caclulations
+begintime=datetime.datetime.now()
 
 ### Construct command sequence
 dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
@@ -71,8 +74,8 @@ while dt<=end:
 
     if dt!=dtstart:
       tempdiff=np.diff(temps, axis=0)
-      tempdiff[tempdiff==0]=1 # Prevents division by zero and conforms to proper gdd calculation; nan's should only mean bad grid cells
-      hoursperdeg=np.abs(1/tempdiff) # ! Division be zero subverted by line above
+      hoursperdeg=np.abs(1/tempdiff) # ! Division be zero subverted by line below
+      hoursperdeg[hoursperdeg==np.inf]=1 # ! Conforms to proper gdd calculation; note: nan's should only mean grid cells with originally missing info
 
       for i in xrange(NUMCBINS):
           CMIN=i
@@ -96,11 +99,14 @@ while dt<=end:
     
     dt +=step
 
-
 print '--- Finished with GDD calculation ---'
-print '--- Saving GDD in ' + CONSTDIR 
-savefile= CONSTDIR + '\gdd_binned.txt'
-np.savetxt(savefile, gdd_accum, delimiter=",")
-print '--- Saved gdd_binned.txt ! ---'
+if SAVE==1:
+   print '--- Saving GDD in ' + CONSTDIR 
+   savefile= CONSTDIR + '\gdd_binned.txt'
+   np.savetxt(savefile, gdd_accum, delimiter=",")
+   print '--- Saved gdd_binned.txt ! ---'
 
+#print "point of rocks", (gdd_accum[0:45,53274] * range(0,len(gdd_accum[0:45,53274]))).sum()
 
+print "Started at " + str(begintime)
+print "Ended at " + str(datetime.datetime.now())
