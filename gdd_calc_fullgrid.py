@@ -14,14 +14,15 @@ CONSTDIR="/mnt/NLDAS-data/constructed"
 STARTYR=2012
 ENDYR=2012
 STARTMO=4
-ENDMO=8
+ENDMO=4
 STARTDAY=1
-ENDDAY=31
+ENDDAY=1
 STARTHR=0
 ENDHR=23
-BASETEMP=10 # Basic GDD calculation
-MAXTEMP=30
+BASETEMP=0 # Basic GDD calculation
+MAXTEMP=100
 DOWNLOAD=0
+SAVE=0 #Save results to file
 
 ### Construct command sequence
 dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
@@ -90,10 +91,11 @@ while dt<=end:
 
 
 print '--- Finished with GDD calculation ---'
-print '--- Saving GDD in ' + CONSTDIR 
-savefile= CONSTDIR + '/gdd_fullgrid.txt'
-np.savetxt(savefile, gdd_accum, delimiter=",")
-print '--- Saved gdd_fullgrid.txt ! ---'
+if SAVE==1:
+   print '--- Saving GDD in ' + CONSTDIR 
+   savefile= CONSTDIR + '/gdd_fullgrid.txt'
+   np.savetxt(savefile, gdd_accum, delimiter=",")
+   print '--- Saved gdd_fullgrid.txt ! ---'
 #gdd_day=(np.nanmax(temps,axis=0)+np.nanmin(temps,axis=0))/2 - BASETEMP
 #gdd_total.append(gdd_day.tolist())
 #print gdd_total
