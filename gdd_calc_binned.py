@@ -110,3 +110,16 @@ if SAVE==1:
 
 print "Started at " + str(begintime)
 print "Ended at " + str(datetime.datetime.now())
+
+
+#print '--- Basic GDD calculation at Point of Rocks, MD ---'
+BASET=10
+MAXT=30
+GID=53274 # Point of Rocks
+scale1=range(1,gdd_accum[BASET:(MAXT+1),:].shape[0]+1)
+scale2=gdd_accum[(MAXT+1):,:].shape[0]*[MAXT-BASET+1]
+gdd_basic=[(gdd_accum[BASET:,]*(scale1+scale2)).sum() for i in xrange(gdd_accum.shape[1])]
+print "Point of Rocks, MD GDD(10,30) is ", gdd_basic[GID]
+
+
+
