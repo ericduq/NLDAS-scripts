@@ -102,7 +102,7 @@ while dt<=end:
 print '--- Finished with GDD calculation ---'
 if SAVE==1:
    print '--- Saving GDD in ' + CONSTDIR 
-   savefile= CONSTDIR + '\gdd_binned.txt'
+   savefile= CONSTDIR + '/gdd_binned.txt'
    np.savetxt(savefile, gdd_accum, delimiter=",")
    print '--- Saved gdd_binned.txt ! ---'
 
