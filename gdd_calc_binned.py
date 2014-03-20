@@ -13,14 +13,14 @@ DATADIR="/mnt/NLDAS-data/originals"
 CONSTDIR="/mnt/NLDAS-data/constructed"
 STARTYR=2012
 ENDYR=2012
-STARTMO=8
+STARTMO=4
 ENDMO=8
 STARTDAY=1
-ENDDAY=1
+ENDDAY=31
 STARTHR=0
-ENDHR=1
+ENDHR=23
 STARTC=0 # starting celsius bin
-ENDC=70 # ending celsius bin (inclusive)
+ENDC=45# ending celsius bin (inclusive)
 #MAXTEMP=30
 DOWNLOAD=0
 SAVE=0
@@ -29,10 +29,10 @@ SAVE=0
 begintime=datetime.datetime.now()
 
 ### Construct command sequence
-dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
-end = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
+dtstart = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
+dtend = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
 step = datetime.timedelta(hours=1)
-dtstart=dt
+dt=dtstart
 
 print '--- Starting GDD calculation ---'
 temps=list()
@@ -45,7 +45,7 @@ for i in xrange(53):  #clear gid 0-51 range. Only useful if a prior running resu
    except:
       pass # do nothing
 
-while dt<=end:
+while dt<=dtend:
     
     # Convert dt to strings
     yy=str(dt.year)
@@ -74,15 +74,11 @@ while dt<=end:
   
 
     if dt!=dtstart:
-      print temps[0][53274], temps[1][53274]
       tempdiff=np.diff(temps, axis=0)
       hoursperdeg=np.abs(1/tempdiff) # ! Division be zero subverted by line below
       hoursperdeg[hoursperdeg==np.inf]=1 # ! Conforms to proper gdd calculation; note: nan's should only mean grid cells with originally missing info
 
       for i in xrange(STARTC,ENDC+1,1):
-
-          # !! Need to add in conditional continue to avoid uncessary calculaitions for cel bins outside max and min temps
-
           CMIN=i
           CMAX=i+1
           nptemps = np.array(temps)
@@ -90,11 +86,6 @@ while dt<=end:
           nptemps[nptemps>CMAX] = CMAX
           bintempdiff = np.abs( np.diff(nptemps, axis=0) ) # should be in closed 0-1 interval
           gdd = ( bintempdiff * hoursperdeg ) / 24  # calculates amount of time spent in particular bin conditional on temp rate change
-          print i
-          print nptemps[:,53274]
-          print hoursperdeg[:,53274]
-          print bintempdiff[:,53274]
-          print gdd[:,53274]
           gdd_accum[i] = gdd_accum[i]+gdd
       temps.pop(0)
 
@@ -119,17 +110,17 @@ print "Started at " + str(begintime)
 print "Ended at " + str(datetime.datetime.now())
 
 
-print '--- Basic GDD calculation over whole season at Point of Rocks, MD ---'
+print '--- Basic GDD calculation from ' + dtstart.strftime('%c') + ' to ' + dtend.strftime('%c') + ' for Point of Rocks, MD ---'
 # Basic GDD is ( max + min  ) / 2 - base
 # WHen taking the cumulative sum below, the celsius value is taken to be midpint (e.g., 15.5) to match basic GDD
 BASET=10
 MAXT=30
-GID=53274 # Point of Rocks
+GID=53275 # Point of Rocks
 scale1=xrange(1,gdd_accum[BASET:(MAXT+1),:].shape[0]+1)
 scale1=[i-.5 for i in scale1] # adjust by .5 to match basic gdd calculation
 scale2=gdd_accum[(MAXT+1):,:].shape[0]*[MAXT-BASET+.5] # adjust by .5 to match basic gdd calculation
 gdd_basic=[(gdd_accum[BASET:,i]*(scale1+scale2)).sum() for i in xrange(gdd_accum.shape[1])]
-print "Point of Rocks, MD GDD(10,30) is ", gdd_basic[GID]
+print "   Point of Rocks, MD GDD(10,30) is ", gdd_basic[GID]
 
 
 

@@ -14,27 +14,26 @@ CONSTDIR="/mnt/NLDAS-data/constructed"
 STARTYR=2012
 ENDYR=2012
 STARTMO=4
-ENDMO=4
+ENDMO=8
 STARTDAY=1
-ENDDAY=1
+ENDDAY=31
 STARTHR=0
 ENDHR=23
-BASETEMP=0 # Basic GDD calculation
-MAXTEMP=100
+BASETEMP=10 # Basic GDD calculation
+MAXTEMP=30
 DOWNLOAD=0
 SAVE=0 #Save results to file
 
 ### Construct command sequence
-dt = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
-end = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
+dtstart = datetime.datetime(STARTYR,STARTMO,STARTDAY,STARTHR)
+dtend = datetime.datetime(ENDYR,ENDMO,ENDDAY,ENDHR)
 step = datetime.timedelta(hours=1)
-dtstart=dt
+dt=dtstart
 
 print '--- Starting GDD calculation ---'
 temps=list()
 gdd_accum=np.zeros([1,103936])
 gdd_total=list()
-portemp=list() # Point of Rocks temp.
 
 for i in xrange(53):  #clear gid 0-51 range. Only useful if a prior running results in improper shutdown and a failure to run gid release.
    try:
@@ -42,7 +41,7 @@ for i in xrange(53):  #clear gid 0-51 range. Only useful if a prior running resu
    except:
       pass # do nothing
 
-while dt<=end:
+while dt<=dtend:
     
     # Convert dt to strings
     yy=str(dt.year)
@@ -89,6 +88,9 @@ while dt<=end:
     
     dt +=step
 
+print "--- Basic GDD calculation from " + dtstart.strftime('%c') + " to " + dtend.strftime('%c') + " for Point of Rocks, MD ---"
+print "    GDD is", gdd_accum[0][53275]
+print " "
 
 print '--- Finished with GDD calculation ---'
 if SAVE==1:
@@ -96,13 +98,4 @@ if SAVE==1:
    savefile= CONSTDIR + '/gdd_fullgrid.txt'
    np.savetxt(savefile, gdd_accum, delimiter=",")
    print '--- Saved gdd_fullgrid.txt ! ---'
-#gdd_day=(np.nanmax(temps,axis=0)+np.nanmin(temps,axis=0))/2 - BASETEMP
-#gdd_total.append(gdd_day.tolist())
-#print gdd_total
-#print sum(gdd_total)
-
-
-#print '--- Converting to dataframe ---'
-#date=pd.date_range(dt_start,periods=24,freq='H')
-#hour24=pd.DataFrame(hour24,index=date)
 

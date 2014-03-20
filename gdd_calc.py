@@ -12,15 +12,15 @@ import subprocess
 DATADIR="/mnt/NLDAS-data/originals"
 STARTYR=2012
 ENDYR=2012
-STARTMO=4
-ENDMO=4
+STARTMO=8
+ENDMO=8
 STARTDAY=1
 ENDDAY=1
 STARTHR=0
 ENDHR=23
 BASETEMP=10 # Basic GDD calculation
 MAXTEMP=30
-LAT=39.27583 # Point of Rocks, MD
+LAT=39.27583 # Point of Rocks, MD ; NLDAS grid cell 53275
 LON=-77.53944
 DOWNLOAD=0
 
@@ -33,6 +33,8 @@ step = datetime.timedelta(hours=1)
 print '--- Starting calculation ---'
 dtemps=list()
 gdd_total=list()
+gid_list=list()
+
 while dt<=end:
     
     htemp=list()
@@ -59,22 +61,19 @@ while dt<=end:
 
     #for i in xrange(mcount):
     gid = 15 # 15 should alawys be surface temperature for NOAH2	
-    #htemp=grib_get_values(gid) # ENTIRE GRID
     point=grib_find_nearest(gid,LAT,LON,is_lsm = False,npoints = 1) # SINGLE LAT-LON
     htemp=point[0]['value']
-    print htemp
     htemp=np.nan if htemp==9999 else htemp-273.15 # Convert missing to Nan and K degrees to C
-    print htemp
     
     dtemps.append(htemp) # append hour temperature to day temperatures
     if dt.hour==23:
+       
        dtemps=np.array(dtemps)
        dtemps[dtemps<BASETEMP]=BASETEMP
        dtemps[dtemps>MAXTEMP]=MAXTEMP
        print '--- Calculating GDD ----'
        gdd_day=(np.nanmax(dtemps,axis=0)+np.nanmin(dtemps,axis=0))/2 - BASETEMP
        gdd_total.append(gdd_day.tolist())
-       a=dtemps
        dtemps=list()
     
     for i in xrange(mcount):
@@ -89,4 +88,3 @@ while dt<=end:
     dt +=step
 
 print gdd_total
-print sum(gdd_total)
