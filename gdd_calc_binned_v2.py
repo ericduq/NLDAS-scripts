@@ -18,7 +18,7 @@ ENDMO=6
 STARTDAY=1
 ENDDAY=1
 STARTHR=0
-ENDHR=3
+ENDHR=23
 STARTC=0 # starting celsius bin
 ENDC=45# ending celsius bin (inclusive)
 #MAXTEMP=30
@@ -40,11 +40,10 @@ print '--- Starting GDD calculation ---'
 # Pre-allocate and define for efficiency and accumulate values
 temps=list()
 gdd_accum=np.zeros([ENDC+1,103936])
-celmin_arr=np.tile(range(STARTC,ENDC+1),(1,1,103936))
+celmin_arr=np.tile(range(STARTC,ENDC+1),(103936,2,1)).transpose()
 celmax_arr=celmin_arr+1
 gdd_total=list()
 
-break;
 
 for i in xrange(53):  #clear gid 0-51 range. Only useful if a prior running results in improper shutdown and a failure to run gid release.
    try:
@@ -97,8 +96,8 @@ while dt<=dtend:
       bintempdiff = np.abs(np.diff(nptemps, axis=1) )
 
       gdd = (bintempdiff * hoursperdeg)/24
-      gdd_accum=gdd_accum+gdd
-      break;
+      gdd_accum=gdd_accum+np.squeeze(gdd)
+
       temps.pop(0)
 
     for i in xrange(mcount):
